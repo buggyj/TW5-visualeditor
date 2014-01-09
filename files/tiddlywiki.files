@@ -855,6 +855,14 @@
 			}
 		},
 		{
+			"file": "config.json",
+			"fields": {
+				"type": "application/json",
+				"title": "$:/plugins/BJ/TW5CKEditor/config.json",
+				"module-type": "library"
+			}
+		},
+		{
 			"file": "skins/moono/editor_gecko.css",
 			"fields": {
 				"title": "$:/plugins/BJ/TW5CKEditor/skins/moono/editor_gecko.css"

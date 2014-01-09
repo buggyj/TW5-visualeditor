@@ -17,10 +17,26 @@ if($tw.browser) {
 	require("$:/plugins/BJ/TW5CKEditor/ckeditor.js");
 	var dom=require("$:/core/modules/utils/dom.js");
  
-	dom.applyStyleSheet("ckeditmain",$tw.wiki.getTiddlerText("$:/plugins/BJ/TW5CKEditor/skins/moonodiv/editor.css"));
-	dom.applyStyleSheet("ckeditdialog",$tw.wiki.getTiddlerText("$:/plugins/BJ/TW5CKEditor/skins/moonodiv/dialog.css"));
+	dom.applyStyleSheet("ckeditmain",$tw.wiki.getTiddlerText("$:/plugins/BJ/TW5CKEditor/skins/moono/editor_gecko.css"));
+	//dom.applyStyleSheet("ckeditdialog",$tw.wiki.getTiddlerText("$:/plugins/BJ/TW5CKEditor/skins/moono/dialog.css"));
 	if (typeof CKEDITOR != 'undefined')   {
 	CKEDITOR.stylesSet.add( 'default',$tw.wiki.getTiddlerData("$:/plugins/BJ/TW5CKEditor/styles.json"));
+	CKEDITOR.on( 'instanceReady', function( ev ) {
+		var blockTags = ['div','h1','h2','h3','h4','h5','h6','p','pre','ul','li','br'];
+		var rules = {
+		indent : false,
+		breakBeforeOpen : true,
+		breakAfterOpen : true,
+		breakBeforeClose : true,
+		breakAfterClose : true
+	};
+
+	for (var i=0; i<blockTags.length; i++) {
+	ev.editor.dataProcessor.writer.setRules( blockTags[i], rules );
+	}
+
+
+	});
 	//BJ FixMe: figure out how to hide tw5 tags and macros from ckeditor
 		CKEDITOR.config.protectedSource.push(/<\/?\$[^<]*\/?>/g);
 		//CKEDITOR. config.protectedSource.push(/<\?[\s\S]*?\?>/g); // PHP Code
@@ -35,13 +51,24 @@ if($tw.browser) {
 						if (headlist[3] ==='TW5CKEditor') {
 							var iconname = headlist[headlist.length-1];
 							//alert("icon"+iconname);
-							CKEDITOR.skin.icons[ iconname ] = { path: '); background-image: url(data:image/png;base64,'+
+							if (headlist[headlist.length-2]!="hidpi")
+								CKEDITOR.skin.icons[ iconname ] = { path: '); background-image: url(data:image/png;base64,'+
 							   $tw.wiki.getTiddlerText(title)+');', offset: 0 } ;
 						}
 				}else if (head_ext[1]==='js'){
 						var head = head_ext[0];//hack of .png
 						var headlist = head.split("/"); //filename is last
 						if (headlist[3] ==='TW5CKEditor') {require(title);  }
+				}else if (head_ext[1]==='css'){
+						var head = head_ext[0];//hack of .png
+						var headlist = head.split("/"); //filename is last
+						if (headlist[3] ==='TW5CKEditor') {
+							if (title !="$:/plugins/BJ/TW5CKEditor/skins/moono/editor_gecko.css"
+							&& title !="$:/plugins/BJ/TW5CKEditor/skins/moono/dialog.css"){alert(title);
+								//dom.applyStyleSheet("ckedit"+headlist[length-1],
+									//				 $tw.wiki.getTiddlerText(title));
+													 }
+  }
 				}
 		}
 		$tw.utils.each($tw.wiki.shadowTiddlers,workfn);
@@ -49,6 +76,8 @@ if($tw.browser) {
 		//for non shadow tiddlers 
 		var extensions =  $tw.wiki.getTiddlersWithTag("CKExtension");
 		for (var i = 0; i<extensions.length;i++) {workfn(null,extensions[i])};
+	dom.applyStyleSheet("ckeditdialog",$tw.wiki.getTiddlerText("$:/plugins/BJ/TW5CKEditor/skins/moono/dialog.css"));
+
 	}
 }
 
@@ -82,7 +111,7 @@ EditHtmlWidget.prototype.postRender = function() {
 		this.domNodes[0].setAttribute("name",ck);
 		this.domNodes[0].setAttribute("id",ck);
 
-		CKEDITOR.replace(ck, { customConfig:"" });//,
+		CKEDITOR.replace(ck, $tw.wiki.getTiddlerData("$:/plugins/BJ/TW5CKEditor/config.json"));//,
 			//extraPlugins:$tw.wiki.getTiddlerText("$:/plugins/BJ/TW5CKEditor/extraplugins.tid")});	
 		//BJ: note that we have statically loaded the style sheet already,
 		//therefore it is not possible to load a different skin here
@@ -95,7 +124,7 @@ EditHtmlWidget.prototype.postRender = function() {
 	} 
 };
 /*
-BJ the follow code is fro tw5 core, with some minor modifications
+BJ the follow code is from tw5 core, with some minor modifications
 *******************************************************************
 Edit-html widget
 */
