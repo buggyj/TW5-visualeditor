@@ -1,7 +1,4 @@
-﻿/*
- Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- For licensing, see LICENSE.md or http://ckeditor.com/license
-*/
+﻿
 CKEDITOR.dialog.add("verbatim", function (b) {
     function d(a) {
         var b = this.getValue();
@@ -44,7 +41,7 @@ CKEDITOR.dialog.add("verbatim", function (b) {
             title: b.lang.forms.button.title,
             elements: [ {
                 id: "value",
-                type: "text",
+                type: "textarea",
                 label: b.lang.forms.button.text,
                 accessKey: "V",
                 "default": "",

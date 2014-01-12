@@ -119,7 +119,7 @@ EditHtmlWidget.prototype.postRender = function() {
 
 		 newtext=text.replace(/^<input name=\"untiddlywiki\" type=\"button\" value=\"([\s\S]*?)" \/>/,
 		function(m,key,offset,str){
-			return $tw.utils.htmlDecode(key).replace(/\\end/g,"\n\end")+"<!-- verbatim -->";
+			return $tw.utils.htmlDecode(key)+"<!-- verbatim -->";
 		});
 		newtext =
 		newtext.replace(/<input name=\"untiddlywiki\" type=\"button\" value=\"([\s\S]*?)" \/>/g,
@@ -179,7 +179,7 @@ EditHtmlWidget.prototype.render = function(parent,nextSibling) {
 		function(m,key,offset,str){//alert(key);
 			return preAmble+$tw.utils.htmlEncode(key)+'"  />';
 		});//alert ("newtext "+newtext)
-		return text.join();
+		return text.join("");
 	}
 	// Create our element
 	var domNode = this.document.createElement(this.editTag);
