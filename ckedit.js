@@ -42,6 +42,7 @@ if($tw.browser) {
 
 	});
 	//BJ FixMe: figure out how to hide tw5 tags and macros from ckeditor
+	CKEDITOR.config.enterMode = CKEDITOR.ENTER_BR;
 		CKEDITOR.config.protectedSource.push(/<\/?\$[^<]*\/?>/g);
 		CKEDITOR.config.protectedSource.push(/<<[^<]*>>/g);
 		//CKEDITOR. config.protectedSource.push(/<\?[\s\S]*?\?>/g); // PHP Code
@@ -110,6 +111,27 @@ EditHtmlWidget.prototype = new Widget();
 EditHtmlWidget.prototype.postRender = function() {
 	var self = this,
 		cm;
+	var toWiki = function(text) {
+		//if($tw.browser) alert("in towiki "+text)
+
+		//BJ FIXME - in theory the attribs can be in any order, so this may fail as it is
+		var newtext="";
+
+		 newtext=text.replace(/^<input name=\"untiddlywiki\" type=\"button\" value=\"([\s\S]*?)" \/>/,
+		function(m,key,offset,str){
+			return $tw.utils.htmlDecode(key).replace(/\\end/g,"\n\end")+"<!-- verbatim -->";
+		});
+		newtext =
+		newtext.replace(/<input name=\"untiddlywiki\" type=\"button\" value=\"([\s\S]*?)" \/>/g,
+		function(m,key,offset,str){
+			return "<!-- verb -->"+$tw.utils.htmlDecode(key)+"<!-- atim -->";
+		});
+		//if($tw.browser) alert(newtext);
+		return newtext;
+	}
+
+
+		
 	if($tw.browser && window.CKEDITOR && this.editTag === "textarea") {
 		
 		var ck ="editor"+ Math.random();
@@ -122,8 +144,8 @@ EditHtmlWidget.prototype.postRender = function() {
 		//therefore it is not possible to load a different skin here
 		//CKEDITOR.replace(ck,{ extraPlugins : 'divarea'})
 		CKEDITOR.instances[ck].on('change', 
-			function() {
-				self.getEditInfo().update(CKEDITOR.instances[ck].getData());
+			function() {//BJ removed.replace(/\<br \/\>/g, "\n")
+				self.getEditInfo().update(toWiki(CKEDITOR.instances[ck].getData()));
 			}
 		);
 	} 
@@ -144,6 +166,21 @@ EditHtmlWidget.prototype.render = function(parent,nextSibling) {
 	this.computeAttributes();
 	// Execute our logic
 	this.execute();
+	var fromWiki = function(text) {
+		var preAmble='<input name="untiddlywiki" type="button" value= "';
+
+		//seperate the /define .../end section
+		text = text.split("<\!-- verbatim -->");
+		if (text.length==1) //no preamble defined
+			text.unshift(preAmble+'"  />'); 
+		else
+			text[0]= preAmble+$tw.utils.htmlEncode(text[0])+'"  />'
+		text[1] = 	text[1].replace(/<\!-- verb -->([\s\S]*?)<\!-- atim -->/g,
+		function(m,key,offset,str){//alert(key);
+			return preAmble+$tw.utils.htmlEncode(key)+'"  />';
+		});//alert ("newtext "+newtext)
+		return text.join();
+	}
 	// Create our element
 	var domNode = this.document.createElement(this.editTag);
 	if(this.editType) {
@@ -158,8 +195,8 @@ EditHtmlWidget.prototype.render = function(parent,nextSibling) {
 	}
 	// Set the text
 	var editInfo = this.getEditInfo();
-	if(this.editTag === "textarea") {
-		domNode.appendChild(this.document.createTextNode(editInfo.value));
+	if(this.editTag === "textarea") {//BJ removed .replace(/\n/g, "<br />")
+		domNode.appendChild(this.document.createTextNode(fromWiki(editInfo.value)));
 	} else {
 		domNode.setAttribute("value",editInfo.value)
 	}
@@ -355,6 +392,8 @@ EditHtmlWidget.prototype.saveChanges = function(text) {
 };
 
 exports["edit-html"] = EditHtmlWidget;
+$tw.utils.registerFileType("text/htmlp","utf8",".htmlp");
+exports["edit-htmlp"] = EditHtmlWidget;
 
 })();
 
