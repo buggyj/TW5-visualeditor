@@ -2,7 +2,7 @@
 CKEDITOR.dialog.add("verbatim", function (b) {
     function d(a) {
         var b = this.getValue();
-        b ? (a.attributes[this.id] = b, "name" == this.id && (a.attributes["data-cke-saved-name"] = b)) : (delete a.attributes[this.id], "name" == this.id && delete a.attributes["data-cke-saved-name"])
+        if (!!b) a.setHtml($tw.utils.htmlEncode(b).replace(/(\r\n|\n|\r)/gm, "<br />"));
     }
     return {
         title: b.lang.forms.button.title,
@@ -11,7 +11,7 @@ CKEDITOR.dialog.add("verbatim", function (b) {
         onShow: function () {
             delete this.verbatim; 
             var a = this.getParentEditor().getSelection().getSelectedElement();
-            if (!!a && a.is("input") && a.getAttribute("name") =="untiddlywiki") {
+            if (!!a && a.is("span") && a.getAttribute("class") =="verbatim") {
 				this.verbatim =a; //record element to edit
                 this.setupContent(a);
             }
@@ -25,10 +25,12 @@ CKEDITOR.dialog.add("verbatim", function (b) {
             var a = this.getParentEditor(),
                 b = this.verbatim,//existing element -set in onshow()
                 d = !b,
-                c = b ? CKEDITOR.htmlParser.fragment.fromHtml(b.getOuterHtml()).children[0] : new CKEDITOR.htmlParser.element("input");
+                c = b ? CKEDITOR.htmlParser.fragment.fromHtml(b.getOuterHtml()).children[0] : new CKEDITOR.htmlParser.element("span");
             this.commitContent(c);
-            c.attributes['name']="untiddlywiki";
-            c.attributes['type']="button";
+            c.attributes['class']="verbatim";
+            c.attributes['style']="background-color:#5778D8";
+            c.attributes['contenteditable']="false";
+
             
             var e = new CKEDITOR.htmlParser.basicWriter;
             c.writeHtml(e);
@@ -45,8 +47,8 @@ CKEDITOR.dialog.add("verbatim", function (b) {
                 label: b.lang.forms.button.text,
                 accessKey: "V",
                 "default": "",
-                setup: function (a) {
-                    this.setValue(a.getAttribute("value") || "")
+                setup: function (a) {//.replace(/(\r\n|\n|\r)/gm, "\\n")
+                    this.setValue($tw.utils.htmlDecode(a.getHtml( ).replace(/<br \/>/gm, "\n") || ""))
                 },
                 commit: d
             }]

@@ -29,19 +29,27 @@ if($tw.browser) {
   'table','thead','tbody','tfoot','td','th',];
 		var rules = {
 		indent : false,
-		breakBeforeOpen : true,
-		breakAfterOpen : true,
-		breakBeforeClose : true,
-		breakAfterClose : true
+		breakBeforeOpen : false,
+		breakAfterOpen : false,
+		breakBeforeClose : false,
+		breakAfterClose : false
 	};
 
 	for (var i=0; i<blockTags.length; i++) {
 	ev.editor.dataProcessor.writer.setRules( blockTags[i], rules );
 	}
-
+ev.editor.dataProcessor.writer.setRules("br", {
+		indent : false,
+		breakBeforeOpen : false,
+		breakAfterOpen : false,
+		breakBeforeClose : false,
+		breakAfterClose : false
+	} )
 
 	});
 	//BJ FixMe: figure out how to hide tw5 tags and macros from ckeditor
+	CKEDITOR.config.allowedContent = true;
+	CKEDITOR.config.ignoreEmptyParagraph = false;
 	CKEDITOR.config.enterMode = CKEDITOR.ENTER_BR;
 		CKEDITOR.config.protectedSource.push(/<\/?\$[^<]*\/?>/g);
 		CKEDITOR.config.protectedSource.push(/<<[^<]*>>/g);
@@ -117,14 +125,14 @@ EditHtmlWidget.prototype.postRender = function() {
 		//BJ FIXME - in theory the attribs can be in any order, so this may fail as it is
 		var newtext="";
 
-		 newtext=text.replace(/^<input name=\"untiddlywiki\" type=\"button\" value=\"([\s\S]*?)" \/>/,
+		 newtext=text.replace(/^<span class=\"verbatim\".*?>([\s\S]*?)<\/span>/,
 		function(m,key,offset,str){
-			return $tw.utils.htmlDecode(key)+"<!-- verbatim -->";
+			return $tw.utils.htmlDecode(key.replace(/<br \/>/gm, "\n"))+"<!-- verbatim -->";
 		});
 		newtext =
-		newtext.replace(/<input name=\"untiddlywiki\" type=\"button\" value=\"([\s\S]*?)" \/>/g,
+		newtext.replace(/<span class=\"verbatim\".*?>([\s\S]*?)<\/span>/g,
 		function(m,key,offset,str){
-			return "<!-- verb -->"+$tw.utils.htmlDecode(key)+"<!-- atim -->";
+			return "<!-- verb -->"+$tw.utils.htmlDecode(key.replace(/<br \/>/gm, "\n"))+"<!-- atim -->";
 		});
 		//if($tw.browser) alert(newtext);
 		return newtext;
@@ -167,19 +175,20 @@ EditHtmlWidget.prototype.render = function(parent,nextSibling) {
 	// Execute our logic
 	this.execute();
 	var fromWiki = function(text) {
-		var preAmble='<input name="untiddlywiki" type="button" value= "';
-
+		var preAmble='<span class="verbatim" style="background-color:#5778D8" contenteditable=\"false\">';
+		var index=1;
 		//seperate the /define .../end section
 		text = text.split("<\!-- verbatim -->");
 		if (text.length==1) //no preamble defined
-			text.unshift(preAmble+'"  />'); 
+			index=0;
 		else
-			text[0]= preAmble+$tw.utils.htmlEncode(text[0])+'"  />'
-		text[1] = 	text[1].replace(/<\!-- verb -->([\s\S]*?)<\!-- atim -->/g,
+			text[0]= preAmble+$tw.utils.htmlEncode(text[0]).replace(/(\r\n|\n|\r)/gm, "<br />")+'</span>'
+		text[index] = 	text[index].replace(/<\!-- verb -->([\s\S]*?)<\!-- atim -->/g,
 		function(m,key,offset,str){//alert(key);
-			return preAmble+$tw.utils.htmlEncode(key)+'"  />';
-		});//alert ("newtext "+newtext)
-		return text.join("");
+			return preAmble+$tw.utils.htmlEncode(key).replace(/(\r\n|\n|\r)/gm, "<br />")+'</span>';
+		});//alert ("newtext "+text.join(""))
+		if (index ==1) 	return text.join("");
+		else 			return text[0];
 	}
 	// Create our element
 	var domNode = this.document.createElement(this.editTag);

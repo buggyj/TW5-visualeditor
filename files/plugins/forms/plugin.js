@@ -8,23 +8,23 @@
  */
 
 CKEDITOR.plugins.add( 'forms', {
-	requires: 'dialog,fakeobjects',
-	lang: 'af,ar,bg,bn,bs,ca,cs,cy,da,de,el,en,en-au,en-ca,en-gb,eo,es,et,eu,fa,fi,fo,fr,fr-ca,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,km,ko,ku,lt,lv,mk,mn,ms,nb,nl,no,pl,pt,pt-br,ro,ru,si,sk,sl,sq,sr,sr-latn,sv,th,tr,ug,uk,vi,zh,zh-cn', // %REMOVE_LINE_CORE%
+	lang: 'en',
 
-	onLoad: function() {
-		CKEDITOR.addCss( '.cke_editable form' +
+	onLoad: function() {	
+{
+			CKEDITOR.addCss( '.verbatim ' +
 			'{' +
-				'border: 1px dotted #FF0000;' +
-				'padding: 2px;' +
+				'text-align: left;' +
+				'color:#474747;' +
 			'}\n' );
-	},
+
+}},
+
 	init: function( editor ) {
 		var lang = editor.lang,
-			order = 0,
-			textfieldTypes = { email:1,password:1,search:1,tel:1,text:1,url:1 },
 			allowedContent = {
-
-				verbatim: 'input[type,name,value]'			},
+				verbatim: 'input[type,name,value]'			
+				},
 			requiredContent = {
 				verbatim: 'input'
 			};
@@ -36,14 +36,13 @@ CKEDITOR.plugins.add( 'forms', {
 					allowedContent: allowedContent[ commandName ],
 					requiredContent: requiredContent[ commandName ]
 				};
-				commandName == 'form' && ( def.context = 'form' );
 
 				editor.addCommand( commandName, new CKEDITOR.dialogCommand( commandName, def ) );
 
 				editor.ui.addButton && editor.ui.addButton( buttonName, {
 					label: lang.common[ buttonName.charAt( 0 ).toLowerCase() + buttonName.slice( 1 ) ],
 					command: commandName,
-					toolbar: 'forms,' + ( order += 10 )
+					toolbar: 'forms,' + ( 10 )
 				});
 				CKEDITOR.dialog.add( commandName, dialogFile );
 			};
@@ -78,17 +77,18 @@ CKEDITOR.plugins.add( 'forms', {
 		editor.on( 'doubleclick', function( evt ) {
 			var element = evt.data.element;
 
-			 if ( element.is( 'input' ) ) {
-				var type = element.getAttribute( 'type' ) || 'text';
-				var name =element.getAttribute( 'name' ) || '';
-				switch ( type ) {
-					case 'button':
+			 if ( element.is( 'div' ) ) {
+				var myclass = element.getAttribute( 'class' ) || '';
 				
-						if (name==="untiddlywiki") evt.data.dialog = 'verbatim';
+				switch ( myclass ) {
+					case 'verbatim':
+				
+						 evt.data.dialog = 'verbatim';
 						break;
 
 				}
 			}
+			if ( element.is( 'div' ) ) {if (element.getAttribute( 'class' )=="jeff") alert("jeff")};
 		});
 	},
 
