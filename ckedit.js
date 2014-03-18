@@ -139,6 +139,7 @@ EditHtmlWidget.prototype.postRender = function() {
 	if($tw.browser && window.CKEDITOR && this.editTag === "textarea") {
 		
 		var ck ="editor"+ Math.random();
+		this.ck = ck;
 		this.domNodes[0].setAttribute("name",ck);
 		this.domNodes[0].setAttribute("id",ck);
 
@@ -147,11 +148,13 @@ EditHtmlWidget.prototype.postRender = function() {
 		//BJ: note that we have statically loaded the style sheet already,
 		//therefore it is not possible to load a different skin here
 		//CKEDITOR.replace(ck,{ extraPlugins : 'divarea'})
-		CKEDITOR.instances[ck].on('change', 
+		/*
+		CKEDITOR.instances[ck].on('blur', 
 			function() {
-				self.getEditInfo().update(CKEDITOR.instances[ck].getData());
+				self.saveChanges(CKEDITOR.instances[self.ck].getData());
 			}
 		);
+		*/
 	} 
 };
 /*
@@ -189,7 +192,12 @@ EditHtmlWidget.prototype.render = function(parent,nextSibling) {
 	} else {
 		domNode.setAttribute("value",editInfo.value)
 	}
-
+	// Add an input event handler
+	$tw.utils.addEventListeners(domNode,[
+		//{name: "focus", handlerObject: this, handlerMethod: "handleFocusEvent"}
+		//,
+		{name: "blur", handlerObject: this, handlerMethod: "handleInputEvent"}
+	]);
 	// Insert the element into the DOM
 	parent.insertBefore(domNode,nextSibling);
 	this.domNodes.push(domNode);
@@ -356,7 +364,7 @@ EditHtmlWidget.prototype.fixHeight = function() {
 Handle a dom "input" event
 */
 EditHtmlWidget.prototype.handleInputEvent = function(event) {
-	this.saveChanges(this.domNodes[0].value);
+	this.saveChanges(CKEDITOR.instances[this.ck].getData());
 	this.fixHeight();
 	return true;
 };
@@ -373,13 +381,21 @@ EditHtmlWidget.prototype.handleFocusEvent = function(event) {
 	return true;
 };
 
-EditHtmlWidget.prototype.saveChanges = function(text) {
+EditHtmlWidget.prototype.saveChanges = function(text,deleting) {
+	if (deleting) {
+		this.deleted = true;
+	} else if (this.deleted) {
+		return;
+	}
 	var editInfo = this.getEditInfo();
 	if(text !== editInfo.value) {
 		editInfo.update(text);
 	}
 };
 
+EditHtmlWidget.prototype.save = function(deleting) {
+		this.saveChanges(CKEDITOR.instances[this.ck].getData(),deleting);
+};
 exports["edit-html"] = EditHtmlWidget;
 })();
 
